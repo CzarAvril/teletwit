@@ -16,6 +16,7 @@ def main():
 
     common.init()
 
+
     telegram_bot_token = ""
     twitter_consumer_key = ""
     twitter_consumer_secret = ""
