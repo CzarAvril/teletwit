@@ -5,5 +5,12 @@
       <shebang>/bin/bash</shebang>
       <shebang>/bin/sh</shebang>
     </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="stream.teletwit_bot" />
+        </list>
+      </option>
+    </inspection_tool>
   </profile>
 </component>
