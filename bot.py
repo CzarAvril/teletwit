@@ -15,10 +15,13 @@ import datetime
 # updates*** create dynamic button creation or even better checklist
 def follow(bot, update):
     keyboard = [[InlineKeyboardButton("Walton (WTC)", callback_data='Walton'),
-                 InlineKeyboardButton("Ether (ETH)", callback_data='2')],
+                 InlineKeyboardButton("Ether (ETH)", callback_data='Ether')],
 
-                [InlineKeyboardButton("Bitcoin (BTC)", callback_data='3'),
-                 InlineKeyboardButton("Centra (CTR)", callback_data='4')]]
+                [InlineKeyboardButton("Bitcoin (BTC)", callback_data='Bitcoin'),
+                 InlineKeyboardButton("Centra (CTR)", callback_data='Centra')],
+
+                [InlineKeyboardButton("Ethos (BQX)", callback_data='Ethos'),
+                 InlineKeyboardButton("MIOTA (IOTA)", callback_data='MIOTA')]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -26,34 +29,38 @@ def follow(bot, update):
 
 
 def button(bot, update):
+
     query = update.callback_query
 
-    bot.edit_message_text(text="Selected option: {}".format(query.data),
+    bot.edit_message_text(text="You are now following: {}".format(query.data),
                           chat_id=query.message.chat_id,
                           message_id=query.message.message_id)
 
     answer = "{}".format(query.data)
+    answers = {"Walton":"903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
+              "Ethos":"862007728956485632", "MIOTA":3992601857}
 
-    if answer == "Walton":
-        print("WALLY")
-        common.subscribers["38776221"].append("1")
-    else:
-        print("NOO WALLY")
-        common.subscribers["38776221"].append("0")
-    common.saveSubscribers(common.subscribers)
+     # create a function that checks if the user is in the list already
+    def create_Hustler(bot, update):
+        for id in common.subscribers['chat_id']:
+            if answer in answers.keys():
+                common.subscribers[answers[answer]] = []
+                if common.subscribers[answers[answer]] != 1:
+                    common.subscribers[answers[answer]].append(1)
+                common.saveSubscribers(common.subscribers)
+                print("presnet")
+                #common.subscribers[answers[answer]].append("1")
+                common.saveSubscribers(common.subscribers)
+                print(" value added")
+    create_Hustler(bot, update)
 
-
-
-
-
-
-
+    # list of numbers and Names: Walton = 903434091650883586, Ethereum = 2312333412, Bitcoin = 357312062,
+    # Centra = 884936655437791232, Ethos = 862007728956485632, MIOTA = 3992601857
 
 
 def subscribe(bot, update):
     if update.message.chat_id not in common.subscribers["chat_id"]:
         common.subscribers["chat_id"].append(update.message.chat_id)
-        common.subscribers["sub_date"].append(str(update.message.date))
         common.subscribers["first_name"].append(update.message.from_user.first_name)
         common.subscribers["last_name"].append(update.message.from_user.last_name)
         #common.subscribers["username"].append(str(update.message.from_user.username))
@@ -61,8 +68,8 @@ def subscribe(bot, update):
         print(str(update.message.from_user.first_name))
         print(str(update.message.from_user.id))
         bot.sendMessage(update.message.chat_id, text='Subscribed!')
-        print(str(update.message.date), update.message.date)
         common.saveSubscribers(common.subscribers)
+
     else:
         bot.sendMessage(update.message.chat_id, text='Already Subscribed!')
 
