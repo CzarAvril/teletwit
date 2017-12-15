@@ -40,22 +40,25 @@ def button(bot, update):
     answers = {"Walton":"903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
               "Ethos":"862007728956485632", "MIOTA":3992601857}
 
-     # create a function that checks if the user is in the list already
     def create_Hustler(bot, update):
-        for id in common.subscribers['chat_id']:
-            if answer in answers.keys():
-                common.subscribers[answers[answer]] = []
-                if common.subscribers[answers[answer]] != 1:
-                    common.subscribers[answers[answer]].append(1)
+        for id in range(len(common.subscribers['chat_id'])):
+            if answers[answer] not in common.subscribers.keys():
+                common.subscribers[answers[answer]] = [1]
                 common.saveSubscribers(common.subscribers)
-                print("presnet")
-                #common.subscribers[answers[answer]].append("1")
+                print("testing bitches")
+            elif common.subscribers[answers[answer]][-1] != 0:
+                print("else bitches")
+                common.subscribers[answers[answer]].append(1)
                 common.saveSubscribers(common.subscribers)
-                print(" value added")
-    create_Hustler(bot, update)
+                print(" working bitch?")
+            else:
+                common.subscribers[answers[answer]].append(1)
+                common.saveSubscribers(common.subscribers)
+                print("are we working bitch?")
 
-    # list of numbers and Names: Walton = 903434091650883586, Ethereum = 2312333412, Bitcoin = 357312062,
-    # Centra = 884936655437791232, Ethos = 862007728956485632, MIOTA = 3992601857
+                # common.subscribers['chat_id'][id]
+
+    create_Hustler(bot, update)
 
 
 def subscribe(bot, update):
