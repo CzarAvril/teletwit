@@ -40,6 +40,34 @@ def button(bot, update):
     answers = {"Walton":"903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
               "Ethos":"862007728956485632", "MIOTA":3992601857}
 
+# ****** this is the place where i think the error is , i want the dictionary to function like a data frame
+ # yes, atom doesnt have input either, for the elif statement if the coloumn is there then it adds the value to the last postion
+    # kinna like pop and push, you following ?
+    # right now
+    # that will change later, just trying to get the basic function down
+    # you can run it , on terminal
+    # welllll, since the bot is in different files am not sure
+    # if it was one file, but the directory should run on terminal right ?
+    # run the main
+    # watch what happens when i run the bot and try to follow
+    # am going to to unssubscribe, then subscribe,then follow a coin or two
+     # watch what happens to the subscriber.json file
+    # i deliberatly deleted the other coin coloumns from the json file
+    # so i was able to subscribe
+    # you can see my info, cause i printed it out from the subscribe function
+    # you deh ?
+    # watch the json file
+    # i followed walton but nothing happened
+    # strange, it should work, but now am going to follow coins that are not in the dictionary coloumns
+    # it will add the coloumns and populte it, i want that behaviour, but i dont want it to keep adding the same coin if i already changed the value
+    # you get what am saying ?
+    # i followed ether, and you can see
+    # it added the colomn am goin to follow again, it will add it again not the colomn but the value ---- i dont want that
+    # i want multple values, but not for the same person, not for the same user id or name, you check, i want each coin to be a tru or false
+    # yep that will make it easy for later, when we doing the machine learning, its called hotspotting the data
+    # you still seeing my screen ?
+    # you have headphones? can i talk?
+
     def create_Hustler(bot, update):
         for id in range(len(common.subscribers['chat_id'])):
             if answers[answer] not in common.subscribers.keys():
