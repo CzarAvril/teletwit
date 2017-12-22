@@ -26,14 +26,14 @@ bot = ""
 
 def saveSubscribers(subscribers_list):
     with open('subscribers.json', 'w') as subscribers_list_file:
-        save_data = {'subscribers': subscribers_list}
+        save_data = (subscribers, subscribers_list_file)
         json.dump(save_data, subscribers_list_file)
 
 
 def loadSubscribers():
     with open('subscribers.json') as subscribers_list_file:
         load_data = json.load(subscribers_list_file)
-        return load_data['subscribers']
+        return load_data
 
 
 def loadFollowers():
