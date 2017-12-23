@@ -15,15 +15,15 @@ import datetime
 # updates*** create dynamic button creation or even better checklist
 
 def subscribe(bot, update):
+    last_name = update.message.from_user.last_name
     if update.message.chat_id not in common.subscribers.keys():
         common.subscribers[update.message.chat_id] = { "chat_id": update.message.chat_id,
                                                        "first_name": update.message.from_user.first_name,
-                                                       "user_name": update.message.from_user.last_name,
+                                                       "user_name": last_name,
                                                        "coins" :[]
                                                      }
         print(common.subscribers[update.message.chat_id].keys())
         print(common.subscribers)
-        print(common.subscribers[update.message.chat_id]["coins"].keys())
         common.saveSubscribers(common.subscribers)
 
         #common.subscribers["first_name"].append(update.message.from_user.first_name)
@@ -82,31 +82,29 @@ def button(bot, update):
     answers = { "Walton" : "903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
               "Ethos":"862007728956485632", "MIOTA":3992601857}
 
+    user = update.message.chat_id
 
-    def create_Hustler(bot, update):
-        if answer not in common.subscribers[update.message.chat_id]["coins"]:
+    def hustlers(bot, update,  ):
+      #  print(update.message.chat_id)
+       # print(str(update.message.chat_id))
+        #print("party animal")
+
+
+        if answer not in common.subscribers.keys():
+
             print("did it pass")
-            common.subscribers[update.message.chat_id][answers[answer]].append(1)
+            common.subscribers[answer] = 1
+            #common.saveSubscribers(common.subscribers)
             print("gettint there")
+            common.subscribers[user][answer] = 5
+            print("gettint therew")
+            common.subscribers ["coins"] = 5
             common.saveSubscribers(common.subscribers)
-            common.subscribers[update.message.chat_id][answers[answer]] = 1
+            #common.subscribers["coins"].append(answer)
+
             common.saveSubscribers(common.subscribers)
-            print("testing bitches")
-        elif common.subscribers[update.message.chat_id][answers[answer]] != 0:
-            print("else bitches")
-            common.subscribers[update.message.chat_id][answers[answer]] = 0
-            common.saveSubscribers(common.subscribers)
-            print(" working bitch?")
-        else:
-            common.subscribers[update.message.chat_id][answers[answer]].append(1)
-            common.saveSubscribers(common.subscribers)
-            print("are we working bitch?")
 
-                # common.subscribers['chat_id'][id]
-
-    create_Hustler(bot, update)
-
-
+    hustlers(bot,update, user)
 
 def bot_main(bot_token=""):
     # Create the EventHandler and pass it your bot's token.
