@@ -24,6 +24,9 @@ def subscribe(bot, update):
                                                      }
         print(common.subscribers[update.message.chat_id].keys())
         print(common.subscribers)
+        user = update.message.chat.id
+        print(user)
+
         common.saveSubscribers(common.subscribers)
 
         #common.subscribers["first_name"].append(update.message.from_user.first_name)
@@ -52,6 +55,25 @@ def unsubscribe(bot, update):
         common.saveSubscribers(common.subscribers)
     else:
         bot.sendMessage(update.message.chat_id, text='You need to subscribe first!')
+
+def hustlers(bot, update, answer):
+    print("hello")
+    user = update.message.chat.id
+    print(user)
+
+    if answer not in common.subscribers.keys():
+
+            print("did it pass")
+            common.subscribers[answer] = 1
+            #common.saveSubscribers(common.subscribers)
+            print("gettint there")
+            common.subscribers[user][answer] = 5
+            print("gettint therew")
+            common.subscribers ["coins"] = 5
+            common.saveSubscribers(common.subscribers)
+            #common.subscribers["coins"].append(answer)
+
+            common.saveSubscribers(common.subscribers)
 
 
 
@@ -82,29 +104,8 @@ def button(bot, update):
     answers = { "Walton" : "903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
               "Ethos":"862007728956485632", "MIOTA":3992601857}
 
-    user = update.message.chat_id
+    hustlers(bot,update,answer)
 
-    def hustlers(bot, update,  ):
-      #  print(update.message.chat_id)
-       # print(str(update.message.chat_id))
-        #print("party animal")
-
-
-        if answer not in common.subscribers.keys():
-
-            print("did it pass")
-            common.subscribers[answer] = 1
-            #common.saveSubscribers(common.subscribers)
-            print("gettint there")
-            common.subscribers[user][answer] = 5
-            print("gettint therew")
-            common.subscribers ["coins"] = 5
-            common.saveSubscribers(common.subscribers)
-            #common.subscribers["coins"].append(answer)
-
-            common.saveSubscribers(common.subscribers)
-
-    hustlers(bot,update, user)
 
 def bot_main(bot_token=""):
     # Create the EventHandler and pass it your bot's token.
@@ -121,6 +122,7 @@ def bot_main(bot_token=""):
     dp.add_handler(CommandHandler("subscribe", subscribe))
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
     dp.add_handler(CallbackQueryHandler(button))
+    dp.add_handler(CallbackQueryHandler(hustlers))
 
     # Start the Bot
     updater.start_polling(timeout=5)
