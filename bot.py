@@ -2,6 +2,7 @@ import teletwit_bot.common as common
 from telegram.ext import Updater
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import  ReplyKeyboardMarkup
 from telegram.ext import CommandHandler
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
@@ -56,17 +57,19 @@ def unsubscribe(bot, update):
     else:
         bot.sendMessage(update.message.chat_id, text='You need to subscribe first!')
 
-def hustlers(bot, update, answer):
-    print("hello")
-    user = update.message.chat.id
-    print(user)
 
-    if answer not in common.subscribers.keys():
+def hustlers(bot, update, answer, query):
+    print("hello")
+    chat_id = query.message.chat_id
+    print(chat_id)
+    bot.sendMessage(chat_id, text='hello!')
+
+    if answer not in common.subscribers[chat_id].keys():
 
             print("did it pass")
-            common.subscribers[answer] = 1
-            #common.saveSubscribers(common.subscribers)
+            common.subscribers[chat_id][answer] = 1
             print("gettint there")
+            common.saveSubscribers(common.subscribers)
             common.subscribers[user][answer] = 5
             print("gettint therew")
             common.subscribers ["coins"] = 5
@@ -78,6 +81,21 @@ def hustlers(bot, update, answer):
 
 
 def follow(bot, update):
+
+    last_name = update.message.from_user.last_name
+    if update.message.chat_id not in common.subscribers.keys():
+        common.subscribers[update.message.chat_id] = {"chat_id": update.message.chat_id,
+                                                      "first_name": update.message.from_user.first_name,
+                                                      "user_name": last_name,
+                                                      "coins": []
+                                                      }
+        print(common.subscribers[update.message.chat_id].keys())
+        print(common.subscribers)
+        user = update.message.chat.id
+        print(user)
+
+
+
     keyboard = [[InlineKeyboardButton("Walton (WTC)", callback_data='Walton'),
                  InlineKeyboardButton("Ether (ETH)", callback_data='Ether')],
 
@@ -89,11 +107,12 @@ def follow(bot, update):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    update.message.reply_text('You are now subscribed')
     update.message.reply_text('Please Select the coins you would like to be updated on :', reply_markup=reply_markup)
 
 
-def button(bot, update):
 
+def button(bot, update):
     query = update.callback_query
 
     bot.edit_message_text(text="You are now following: {}".format(query.data),
@@ -104,7 +123,9 @@ def button(bot, update):
     answers = { "Walton" : "903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
               "Ethos":"862007728956485632", "MIOTA":3992601857}
 
-    hustlers(bot,update,answer)
+    print("cat")
+
+    hustlers(bot,update,answer, query)
 
 
 def bot_main(bot_token=""):
@@ -121,8 +142,9 @@ def bot_main(bot_token=""):
     dp.add_handler(CommandHandler('follow', follow))
     dp.add_handler(CommandHandler("subscribe", subscribe))
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
+   # dp.add_handler(CommandHandler("hustlers", hustlers))
     dp.add_handler(CallbackQueryHandler(button))
-    dp.add_handler(CallbackQueryHandler(hustlers))
+
 
     # Start the Bot
     updater.start_polling(timeout=5)
