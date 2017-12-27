@@ -64,7 +64,7 @@ def follow(bot, update):
     }
 
     answers2 = {
-        "Ether(ETH)": 2312333412, "Bitcoin(BTC)": 357312062, "WanChain": 883984505119297536,
+        "Ether(ETH)": 2312333412, "Bitcoin(BTC)": 357312062,"WanChain": 883984505119297536,
         "Centra(CTR)": 884936655437791232, "Ethos(BQX)": 862007728956485632, "MIOTA(IOTA)": 3992601857,
         "Icon(ICX)": 889691121000996864,  "Walton(WTC)": 903434091650883586, "UnikoinGold": 2946825834,
         "Status(SNT)": 774689518767181828
@@ -92,11 +92,11 @@ def follow(bot, update):
 
                 ]
 
-    keyboard3 = [[InlineKeyboardButton(coin, callback_data=id), InlineKeyboardButton(coin2, callback_data=id2)] for coin, id in answers.items()
-               and for coin2, id2 in answers2.items()]
+    keyboard3 = [[InlineKeyboardButton(coin, callback_data=id),
+                 InlineKeyboardButton(coin, callback_data=id)]
 
 
-
+                for coin, id in answers.items()]
 
     #reply_markup = InlineKeyboardMarkup(keyboard2)
     reply_markup = ReplyKeyboardMarkup(keyboard3, one_time_keyboard=True, resize_keyboard=True)
