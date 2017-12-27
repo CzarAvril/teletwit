@@ -1,8 +1,8 @@
 import teletwit_bot.common as common
 from telegram.ext import Updater
 import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram import  ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
@@ -18,40 +18,25 @@ import datetime
 def subscribe(bot, update):
     last_name = update.message.from_user.last_name
     if update.message.chat_id not in common.subscribers.keys():
-        common.subscribers[update.message.chat_id] = { "chat_id": update.message.chat_id,
-                                                       "first_name": update.message.from_user.first_name,
-                                                       "user_name": last_name,
-                                                       "coins" :[]
-                                                     }
-        print(common.subscribers[update.message.chat_id].keys())
-        print(common.subscribers)
-        user = update.message.chat.id
-        print(user)
-
-        common.saveSubscribers(common.subscribers)
-
-        #common.subscribers["first_name"].append(update.message.from_user.first_name)
-        #common.subscribers["last_name"].append(update.message.from_user.last_name)
-        #common.subscribers["username"].append(str(update.message.from_user.username))
-        #common.subscribers["user_id"].append(update.message.from_user.id)
-        print(str(update.message.from_user.first_name))
-        print(str(update.message.from_user.id))
+        common.subscribers[update.message.chat_id] = {"chat_id": update.message.chat_id,
+                                                      "first_name": update.message.from_user.first_name,
+                                                      "user_name": last_name,
+                                                      "coins": []
+                                                      }
 
         bot.sendMessage(update.message.chat_id, text='Subscribed!')
-        common.saveSubscribers(common.subscribers)
+        follow(bot, update)
 
     else:
         bot.sendMessage(update.message.chat_id, text='Already Subscribed!')
+        bot.sendMessage(update.message.chat_id, text='If you would like to follow a new coin use the "/follow" command')
 
 
-def unsubscribe(bot, update):
-    if update.message.chat_id in common.subscribers["chat_id"]:
-        common.subscribers["chat_id"].remove(update.message.chat_id)
-        #common.subscribers["sub_date"].remove(str(update.message.date))
-        common.subscribers["first_name"].remove(update.message.from_user.first_name)
-        common.subscribers["last_name"].remove(update.message.from_user.last_name)
-        #common.subscribers["username"].remove(update.message.from_user.username)
-        #common.subscribers["user_id"].remove(update.message.from_user.id)
+def unsubscribe(bot, update, chat_id):
+    print("here")
+    if chat_id in common.subscribers.keys():
+        print("there")
+        common.subscribers.remove(update.message.chat_id)
         bot.sendMessage(update.message.chat_id, text='Unsubscribed!')
         common.saveSubscribers(common.subscribers)
     else:
@@ -59,57 +44,64 @@ def unsubscribe(bot, update):
 
 
 def hustlers(bot, update, answer, query):
-    print("hello")
     chat_id = query.message.chat_id
     print(chat_id)
     bot.sendMessage(chat_id, text='hello!')
-
     if answer not in common.subscribers[chat_id].keys():
-
             print("did it pass")
-            common.subscribers[chat_id][answer] = 1
-            print("gettint there")
+            common.subscribers[chat_id]["coins"].append(answer)
+            print("getting there")
             common.saveSubscribers(common.subscribers)
-            common.subscribers[user][answer] = 5
-            print("gettint therew")
-            common.subscribers ["coins"] = 5
-            common.saveSubscribers(common.subscribers)
-            #common.subscribers["coins"].append(answer)
-
-            common.saveSubscribers(common.subscribers)
-
 
 
 def follow(bot, update):
+    answers = {
+        "Walton(WTC)": 903434091650883586, "Ether(ETH)": 2312333412, "Bitcoin(BTC)": 357312062,
+        "Centra(CTR)": 884936655437791232, "Ethos(BQX)": 862007728956485632, "MIOTA(IOTA)": 3992601857,
+        "Icon(ICX)": 889691121000996864, "WanChain": 883984505119297536, "UnikoinGold": 2946825834,
+        "Status(SNT)": 774689518767181828
 
-    last_name = update.message.from_user.last_name
-    if update.message.chat_id not in common.subscribers.keys():
-        common.subscribers[update.message.chat_id] = {"chat_id": update.message.chat_id,
-                                                      "first_name": update.message.from_user.first_name,
-                                                      "user_name": last_name,
-                                                      "coins": []
-                                                      }
-        print(common.subscribers[update.message.chat_id].keys())
-        print(common.subscribers)
-        user = update.message.chat.id
-        print(user)
+    }
 
+    answers2 = {
+        "Ether(ETH)": 2312333412, "Bitcoin(BTC)": 357312062, "WanChain": 883984505119297536,
+        "Centra(CTR)": 884936655437791232, "Ethos(BQX)": 862007728956485632, "MIOTA(IOTA)": 3992601857,
+        "Icon(ICX)": 889691121000996864,  "Walton(WTC)": 903434091650883586, "UnikoinGold": 2946825834,
+        "Status(SNT)": 774689518767181828
+
+    }
+    print("here")
+    #keyboard = [KeyboardButton(s) for s in answers.keys()]
+
+    #for coin, id in answers.items():
+       # print('tere')
+       # keyboard2 = [[InlineKeyboardButton(coin, callback_data=id)]]
+
+    keyboard2 = [[KeyboardButton(coin, callback_data=id)] for coin, id in answers.items()]
 
 
     keyboard = [[InlineKeyboardButton("Walton (WTC)", callback_data='Walton'),
-                 InlineKeyboardButton("Ether (ETH)", callback_data='Ether')],
+                InlineKeyboardButton("Ether (ETH)", callback_data='Ether')],
 
-                [InlineKeyboardButton("Bitcoin (BTC)", callback_data='Bitcoin'),
-                 InlineKeyboardButton("Centra (CTR)", callback_data='Centra')],
+              [InlineKeyboardButton("Bitcoin (BTC)", callback_data='Bitcoin'),
+               InlineKeyboardButton("Centra (CTR)", callback_data='Centra')],
 
-                [InlineKeyboardButton("Ethos (BQX)", callback_data='Ethos'),
-                 InlineKeyboardButton("MIOTA (IOTA)", callback_data='MIOTA')]]
+               [InlineKeyboardButton("Ethos (BQX)", callback_data='Ethos'),
+                InlineKeyboardButton("MIOTA (IOTA)", callback_data='MIOTA')]
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
 
-    update.message.reply_text('You are now subscribed')
+                ]
+
+    keyboard3 = [[InlineKeyboardButton(coin, callback_data=id), InlineKeyboardButton(coin2, callback_data=id2)] for coin, id in answers.items()
+               and for coin2, id2 in answers2.items()]
+
+
+
+
+    #reply_markup = InlineKeyboardMarkup(keyboard2)
+    reply_markup = ReplyKeyboardMarkup(keyboard3, one_time_keyboard=True, resize_keyboard=True)
+
     update.message.reply_text('Please Select the coins you would like to be updated on :', reply_markup=reply_markup)
-
 
 
 def button(bot, update):
@@ -120,12 +112,11 @@ def button(bot, update):
                           message_id=query.message.message_id)
 
     answer = "{}".format(query.data)
-    answers = { "Walton" : "903434091650883586", "Ether":2312333412, "Bitcoin":357312062, "Centra":884936655437791232,
-              "Ethos":"862007728956485632", "MIOTA":3992601857}
+
 
     print("cat")
 
-    hustlers(bot,update,answer, query)
+    hustlers(bot, update, answer, query)
 
 
 def bot_main(bot_token=""):
