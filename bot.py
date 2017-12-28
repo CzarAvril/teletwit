@@ -1,7 +1,9 @@
 import teletwit_bot.common as common
 from telegram.ext import Updater
 import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton
+from telegram import InlineQueryResultArticle, InputTextMessageContent
+from telegram.ext import InlineQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -30,6 +32,26 @@ def subscribe(bot, update):
     else:
         bot.sendMessage(update.message.chat_id, text='Already Subscribed!')
         bot.sendMessage(update.message.chat_id, text='If you would like to follow a new coin use the "/follow" command')
+
+
+def inline_caps(bot, update):
+    query = update.inline_query.query
+    btc = "https://www.google.com/search?q=btc+logo&hl=en&site=imghp&tbm=isch&source=lnt&tbs=isz:m&sa=X&ved=0ahUKEwj92M7h76zYAhUHzIMKHdRPAgsQpwUIIA&biw=1259&bih=676&dpr=1#imgrc=Jef9qHkdlhE2QM:"
+    if not query:
+        return
+    results = list()
+    print("did it pass")
+    results.append(InlineQueryResultArticle(id = query.upper(),title = 'Caps', thumb_url= btc,
+                                            input_message_content = InputTextMessageContent(query.upper())))
+    results.append(InlineQueryResultArticle(id=query.lower(), title='Smalls',
+                                            input_message_content=InputTextMessageContent(query.lower())))
+
+    bot.answer_inline_query(update.inline_query.id, results)
+
+
+
+
+
 
 
 def unsubscribe(bot, update, chat_id):
@@ -77,7 +99,7 @@ def follow(bot, update):
        # print('tere')
        # keyboard2 = [[InlineKeyboardButton(coin, callback_data=id)]]
 
-    keyboard2 = [[KeyboardButton(coin, callback_data=id)] for coin, id in answers.items()]
+    keyboard2 = [[InlineKeyboardButton(coin, callback_data=id), ] for coin, id in answers.items()]
 
 
     keyboard = [[InlineKeyboardButton("Walton (WTC)", callback_data='Walton'),
@@ -98,8 +120,9 @@ def follow(bot, update):
 
                 for coin, id in answers.items()]
 
-    #reply_markup = InlineKeyboardMarkup(keyboard2)
-    reply_markup = ReplyKeyboardMarkup(keyboard3, one_time_keyboard=True, resize_keyboard=True)
+    reply_markup = InlineKeyboardMarkup(keyboard2)
+    #reply_markup = ReplyKeyboardMarkup(keyboard3, one_time_keyboard=True, resize_keyboard=True)
+    #reply_markup = ReplyKeyboardRemove()
 
     update.message.reply_text('Please Select the coins you would like to be updated on :', reply_markup=reply_markup)
 
@@ -130,6 +153,8 @@ def bot_main(bot_token=""):
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
+    inline_caps_handler = InlineQueryHandler(inline_caps)
+    dp.add_handler(inline_caps_handler)
     dp.add_handler(CommandHandler('follow', follow))
     dp.add_handler(CommandHandler("subscribe", subscribe))
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
