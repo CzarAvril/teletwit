@@ -18,20 +18,69 @@ import datetime
 # updates*** create dynamic button creation or even better checklist
 
 def subscribe(bot, update):
-    last_name = update.message.from_user.last_name
-    if update.message.chat_id not in common.subscribers.keys():
-        common.subscribers[update.message.chat_id] = {"chat_id": update.message.chat_id,
-                                                      "first_name": update.message.from_user.first_name,
-                                                      "user_name": last_name,
-                                                      "coins": []
-                                                      }
 
+    usr_id = update.effective_user.id  # user id
+    usr_fname = update.effective_user.first_name  # user first name
+    usr_lname = update.effective_user.last_name   # user last name
+
+    if usr_id not in common.subscribers.keys():
+        common.subscribers[usr_id] = {"user_id": usr_id,
+                                      "first_name": usr_fname,
+                                      "user_name": usr_lname,
+                                      "coins": []
+                                      }
         bot.sendMessage(update.message.chat_id, text='Subscribed!')
-        follow(bot, update)
+        bot.sendMessage(update.message.chat_id, text='Thank you for subscribing!'
+                                                     'To see a current list of coins that you can now follow and how '
+                                                     'you can do so please use the /coinlist command ')
 
     else:
         bot.sendMessage(update.message.chat_id, text='Already Subscribed!')
         bot.sendMessage(update.message.chat_id, text='If you would like to follow a new coin use the "/follow" command')
+
+
+def jump():
+    print('tall cats')
+
+def follow_coin(bot, update, query):
+    print("here")
+    usr_id = update.effective_user.id
+    user_chat_id = update.inline_query.id
+    print("here2")
+    coin_list = {"BTC": "Bitcoin", "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
+                 "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
+                 }
+    #if query in coin_list and not common.subscribers[user_chat_id]["coins"]:
+    if query in coin_list.keys():
+        print("under the for loop")
+        print(common.subscribers[usr_id])
+        print(usr_id)
+        #if query == ticker and query not in common.subscribers[usr_id]['coins']":
+        if query not in common.subscribers[usr_id]['coins']:
+                print("tall trees")
+                common.subscribers[usr_id]['coins'].append(coin_list[query])
+                print("under the if statement1")
+           # should send message saying the ticker used isnt correct
+        else:
+            #common.subscribers[usr_id]['coins'].append(coin_list[query])
+            print("under the if statement")
+            #common.subscribers[usr_id]['coins'].append(coin_list[query])
+            print("here3")
+            print(user_chat_id)
+            print(usr_id)
+            #common.saveSubscribers(common.subscribers)
+
+
+def coinlist(bot, update,):
+    coin_list = {"BTC": "Bitcoin", "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
+                 "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
+                 }
+    print("here we go")
+    stuff = '\t' + str(["%s = %s " %(ticker, name) for ticker, name in coin_list.items()])
+    coin_list2 = " To Follow a coin, please type @CryptoHuslter_bot + the coin's Ticker from the list\n "
+
+    bot.sendMessage(update.message.chat_id, text=coin_list2 + stuff)
+
 
 
 def inline_caps(bot, update):
@@ -43,10 +92,14 @@ def inline_caps(bot, update):
     print("did it pass")
     results.append(InlineQueryResultArticle(id = query.upper(),title = 'Caps', thumb_url= btc,
                                             input_message_content = InputTextMessageContent(query.upper())))
-    results.append(InlineQueryResultArticle(id=query.lower(), title='Smalls',
-                                            input_message_content=InputTextMessageContent(query.lower())))
+    print("there1")
+    results.append(InlineQueryResultArticle(id= "follow" , title='follow',
+                                            input_message_content=InputTextMessageContent( message_text= " you are now following:" + query)))
+    print("are we here")
 
     bot.answer_inline_query(update.inline_query.id, results)
+
+    print("passed")
 
 
 
@@ -66,7 +119,7 @@ def unsubscribe(bot, update, chat_id):
 
 
 def hustlers(bot, update, answer, query):
-    chat_id = query.message.chat_id
+    chat_id2 = query.message.chat_id
     print(chat_id)
     bot.sendMessage(chat_id, text='hello!')
     if answer not in common.subscribers[chat_id].keys():
@@ -155,6 +208,7 @@ def bot_main(bot_token=""):
     # on different commands - answer in Telegram
     inline_caps_handler = InlineQueryHandler(inline_caps)
     dp.add_handler(inline_caps_handler)
+    dp.add_handler(CommandHandler('coinlist', coinlist))
     dp.add_handler(CommandHandler('follow', follow))
     dp.add_handler(CommandHandler("subscribe", subscribe))
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
