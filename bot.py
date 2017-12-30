@@ -39,7 +39,30 @@ def subscribe(bot, update):
         bot.sendMessage(update.message.chat_id, text='If you would like to follow a new coin use the "/follow" command')
 
 
-def jump():
+# Coin Follow Functions ( **** Figure out how to automate )
+
+
+def BTC(bot, update):
+    usr_id = update.effective_user.id
+    if "BTC" not in common.subscribers[usr_id]['coins']:
+        print("tall trees")
+        common.subscribers[usr_id]['coins'].append("BTC")
+        print("under the if statement1")
+        bot.sendMessage(update.message.chat_id, text='You are now following Bitcoin')
+        common.saveSubscribers(common.subscribers)
+
+
+def ETH(bot, update):
+    usr_id = update.effective_user.id
+    if "ETH" not in common.subscribers[usr_id]['coins']:
+        print("tall trees")
+        common.subscribers[usr_id]['coins'].append("ETH")
+        print("under the if statement1")
+        bot.sendMessage(update.message.chat_id, text='You are now following Ethereum')
+        common.saveSubscribers(common.subscribers)
+
+
+def jump(bot, update):
     print('tall cats')
 
 def follow_coin(bot, update, query):
@@ -72,12 +95,12 @@ def follow_coin(bot, update, query):
 
 
 def coinlist(bot, update,):
-    coin_list = {"BTC": "Bitcoin", "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
+    coin_list = {"/BTC": "Bitcoin", "/ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
                  "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
                  }
     print("here we go")
     stuff = '\t' + str(["%s = %s " %(ticker, name) for ticker, name in coin_list.items()])
-    coin_list2 = " To Follow a coin, please type @CryptoHuslter_bot + the coin's Ticker from the list\n "
+    coin_list2 = " To Follow a coin, please tap on the coin's Ticker from the list\n "
 
     bot.sendMessage(update.message.chat_id, text=coin_list2 + stuff)
 
@@ -92,9 +115,16 @@ def inline_caps(bot, update):
     print("did it pass")
     results.append(InlineQueryResultArticle(id = query.upper(),title = 'Caps', thumb_url= btc,
                                             input_message_content = InputTextMessageContent(query.upper())))
-    print("there1")
-    results.append(InlineQueryResultArticle(id= "follow" , title='follow',
-                                            input_message_content=InputTextMessageContent( message_text= " you are now following:" + query)))
+
+    results.append(InlineQueryResultArticle(id= "Bitcoin" , title='Price :$14,5467', url="https://coinmarketcap.com/currencies/bitcoin/", hide_url=True,
+                                            input_message_content=InputTextMessageContent( " you are now following:"),
+                                             thumb_url="https://faucethub.io/assets/img/coins/BTC.png", description= "24hr Change: 24.45 %" ))
+
+    results.append(InlineQueryResultArticle(id="Ethereum", title='Price :$740.47',
+                                            url="https://coinmarketcap.com/currencies/ethereum/", hide_url=True,
+                                            input_message_content=InputTextMessageContent(" you are now following:"),
+                                            thumb_url="https://eth-price.com/images/coins/ethereum.png",
+                                            description="24hr Change: 15.45 %"))
     print("are we here")
 
     bot.answer_inline_query(update.inline_query.id, results)
@@ -214,6 +244,10 @@ def bot_main(bot_token=""):
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
    # dp.add_handler(CommandHandler("hustlers", hustlers))
     dp.add_handler(CallbackQueryHandler(button))
+
+    # Coin Follow Functions ( NEEEEDs To Be automated)
+    dp.add_handler(CommandHandler('BTC', BTC))
+    dp.add_handler(CommandHandler('ETH', ETH))
 
 
     # Start the Bot
