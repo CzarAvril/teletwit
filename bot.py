@@ -9,6 +9,11 @@ from telegram.ext import CommandHandler
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 import datetime
+import requests
+from bs4 import BeautifulSoup
+from bittrex.bittrex import Bittrex, API_V2_0
+import time
+
 
 
 # from telegram import Updater
@@ -16,6 +21,9 @@ import datetime
 # command handlers
 # rough draft of coin list(buttons) that users will be able to choose from
 # updates*** create dynamic button creation or even better checklist
+
+
+
 
 def subscribe(bot, update):
 
@@ -43,10 +51,14 @@ def subscribe(bot, update):
 
 
 def BTC(bot, update):
+    coin_list2 = {"BTC": ["Bitcoin", "357312062"], "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple",
+                  "ETC": "Ethereum Classic",
+                  "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
+                  }
     usr_id = update.effective_user.id
     if "BTC" not in common.subscribers[usr_id]['coins']:
         print("tall trees")
-        common.subscribers[usr_id]['coins'].append("BTC")
+        common.subscribers[usr_id]['coins'].append(coin_list2["BTC"][1])
         print("under the if statement1")
         bot.sendMessage(update.message.chat_id, text='You are now following Bitcoin')
         common.saveSubscribers(common.subscribers)
@@ -61,6 +73,63 @@ def ETH(bot, update):
         bot.sendMessage(update.message.chat_id, text='You are now following Ethereum')
         common.saveSubscribers(common.subscribers)
 
+# ******* Now we define the price function
+
+def priceBTC(bot, update):
+    #r = requests.get('https://coins.live/')
+    #soup = BeautifulSoup(r.text,'html.parser')
+    #results = soup.find_all('td', attrs={"class" : "right-align green-text text-darken-1"})
+    my_bittrex = Bittrex(None, None)  # or defaulting to v1.1 as Bittrex(None, None)
+    my_bittrex.get_markets()
+    #print(my_bittrex.get_markets())
+    #print(my_bittrex.get_ticker(market="BTC-ETH"))
+    LTC_summary = my_bittrex.get_marketsummary(market="BTC-ETH")
+    BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC")
+    ETH_summary = my_bittrex.get_marketsummary(market="USDT-ETH")
+    print(LTC_summary)
+    print(BTC_summary)
+    bit_price = LTC_summary["result"][0]["Last"]
+    high= LTC_summary["result"][0]["High"]
+    low = LTC_summary["result"][0]["Low"]
+    vol = LTC_summary["result"][0]["Volume"]
+    coin = LTC_summary["result"][0]["MarketName"][3:]
+    created = LTC_summary["result"][0]["TimeStamp"]
+    btc_price = BTC_summary["result"][0]["Last"]
+    prevDay = LTC_summary["result"][0]["PrevDay"]
+    change = (bit_price - prevDay) / 100
+    change_RO = "%.2f" % change
+    price = bit_price * btc_price
+    price_RO = "%.2f" % price
+    print(btc_price, bit_price, price_RO, price, high,low,vol)
+    print(LTC_summary)
+    Bittrex_price_ETH = "https://bittrex.com/Market/Index?MarketName=USDT-ETH"
+
+
+
+
+    #len(results)
+    #print(len(results))
+    #print(results)
+    #print(results[0:500])
+    #print(results[0:500])
+    # bot.sendMessage(update.message.chat_id, text='*BITCOIN* '
+                                                # '\t\n_Price:_' + price +
+                                                # '\n_24hr Change:_ ' + high +
+                                                # '\n_24hr Volume:_' + vol ,
+                    #parse_mode='Markdown')
+   # bot.sendMessage(update.message.chat_id, text= coin + price)
+
+    bot.sendMessage(update.message.chat_id, "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_*{vol}* \n "
+                                            "_24hr📈📉:_ *{change}%*  \n [{url}](Bittrex_price_ETH) \n [inline URL] ({url}) ".format(coin = coin,
+                                            price= price_RO, vol= vol, change = change_RO, low=low, url=Bittrex_price_ETH),
+                                            parse_mode= "Markdown")
+
+
+
+
+
+
+
 
 def jump(bot, update):
     print('tall cats')
@@ -70,18 +139,18 @@ def follow_coin(bot, update, query):
     usr_id = update.effective_user.id
     user_chat_id = update.inline_query.id
     print("here2")
-    coin_list = {"BTC": "Bitcoin", "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
+    coin_list2 = {"BTC": ["Bitcoin", "357312062" ], "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
                  "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
                  }
     #if query in coin_list and not common.subscribers[user_chat_id]["coins"]:
-    if query in coin_list.keys():
+    if query in coin_list2.keys():
         print("under the for loop")
         print(common.subscribers[usr_id])
         print(usr_id)
         #if query == ticker and query not in common.subscribers[usr_id]['coins']":
         if query not in common.subscribers[usr_id]['coins']:
                 print("tall trees")
-                common.subscribers[usr_id]['coins'].append(coin_list[query])
+                common.subscribers[usr_id]['coins'].append(coin_list2[query][1])
                 print("under the if statement1")
            # should send message saying the ticker used isnt correct
         else:
@@ -95,14 +164,12 @@ def follow_coin(bot, update, query):
 
 
 def coinlist(bot, update,):
-    coin_list = {"/BTC": "Bitcoin", "/ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
+    coin_list = {"/BTC": ["Bitcoin"], "/ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple", "ETC": "Ethereum Classic",
                  "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
                  }
     print("here we go")
     stuff = '\t' + str(["%s = %s " %(ticker, name) for ticker, name in coin_list.items()])
     coin_list2 = " To Follow a coin, please tap on the coin's Ticker from the list\n "
-
-    bot.sendMessage(update.message.chat_id, text=coin_list2 + stuff)
 
 
 
@@ -242,6 +309,7 @@ def bot_main(bot_token=""):
     dp.add_handler(CommandHandler('follow', follow))
     dp.add_handler(CommandHandler("subscribe", subscribe))
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
+    dp.add_handler(CommandHandler("priceBTC", priceBTC))
    # dp.add_handler(CommandHandler("hustlers", hustlers))
     dp.add_handler(CallbackQueryHandler(button))
 
