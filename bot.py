@@ -73,8 +73,56 @@ def ETH(bot, update):
         bot.sendMessage(update.message.chat_id, text='You are now following Ethereum')
         common.saveSubscribers(common.subscribers)
 
-# ******* Now we define the price function
 
+#lets try to automate the price function
+def price(bot, update):
+
+    # get the users text and format it for the Bittrex API
+    price_coin_ticker = update.message.text
+    coin_ticker = price_coin_ticker[7:]
+    ticker_pair = "BTC-"+coin_ticker
+    print(coin_ticker, ticker_pair)
+    #update.message.reply_text(coin_ticker)
+    #update.message.reply_text(ticker_pair)
+
+# set up Bittrex API
+    my_bittrex = Bittrex(None, None)  # or defaulting to v1.1 as Bittrex(None, None)
+
+# Constants used to do Calculations
+    BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC") # Access BTC Market info
+    btc_price = BTC_summary["result"][0]["Last"]
+
+# getting Market info from Bittrex API
+    summary = my_bittrex.get_marketsummary(market=ticker_pair)
+    print(summary)
+    if summary['success'] != True :
+        update.message.reply_text("Sorry! Coin is not supported by the Hustler Team")
+    else:
+        bit_price = summary["result"][0]["Last"] # price in BTC
+        vol = summary["result"][0]["Volume"] # Volume in BTC
+        prevDay = summary["result"][0]["PrevDay"]
+        change = ((bit_price - prevDay) /prevDay) * 100
+        change_RO = "%.2f" % change
+        price = bit_price * btc_price
+        price_RO = "%.2f" % price
+        vol_RO = "%.2f" % vol
+        print(btc_price, bit_price, price_RO, price, vol)
+
+    # Send info to the bot/user | using Reply or send
+    # Reply
+    update.message.reply_text("💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_*{vol}* \n "
+                              "_24hr📈:_ *{change}%*  \n [{coin} on Bittrex](Bittrex_price_ETH) ".format(
+        coin=coin_ticker,
+        price=price_RO, vol=vol_RO, change=change_RO), parse_mode="Markdown")
+
+    # Send
+    bot.sendMessage(update.message.chat_id, "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_*{vol}* \n "
+                                            "_24hr📈:_ *{change}%*  \n [{coin} on Bittrex](Bittrex_price_ETH) ".format(
+       coin=coin_ticker,
+       price=price_RO, vol=vol_RO, change=change_RO), parse_mode="Markdown")
+
+
+# ******* Now we define the price function
 def priceBTC(bot, update):
     #r = requests.get('https://coins.live/')
     #soup = BeautifulSoup(r.text,'html.parser')
@@ -92,14 +140,15 @@ def priceBTC(bot, update):
     high= LTC_summary["result"][0]["High"]
     low = LTC_summary["result"][0]["Low"]
     vol = LTC_summary["result"][0]["Volume"]
-    coin = LTC_summary["result"][0]["MarketName"][3:]
+    coin = LTC_summary["result"][0]["MarketName"][4:]
     created = LTC_summary["result"][0]["TimeStamp"]
     btc_price = BTC_summary["result"][0]["Last"]
     prevDay = LTC_summary["result"][0]["PrevDay"]
-    change = (bit_price - prevDay) / 100
+    change = (prevDay - bit_price) / 100
     change_RO = "%.2f" % change
     price = bit_price * btc_price
     price_RO = "%.2f" % price
+    vol_RO = "%.2f" % vol
     print(btc_price, bit_price, price_RO, price, high,low,vol)
     print(LTC_summary)
     Bittrex_price_ETH = "https://bittrex.com/Market/Index?MarketName=USDT-ETH"
@@ -120,9 +169,8 @@ def priceBTC(bot, update):
    # bot.sendMessage(update.message.chat_id, text= coin + price)
 
     bot.sendMessage(update.message.chat_id, "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_*{vol}* \n "
-                                            "_24hr📈📉:_ *{change}%*  \n [{url}](Bittrex_price_ETH) \n [inline URL] ({url}) ".format(coin = coin,
-                                            price= price_RO, vol= vol, change = change_RO, low=low, url=Bittrex_price_ETH),
-                                            parse_mode= "Markdown")
+                                            "_24hr📈:_ *{change}%*  \n [ETH on Bittrex](Bittrex_price_ETH) ".format(coin = coin,
+                                            price=price_RO, vol=vol_RO, change=change_RO, low=low ), parse_mode= "Markdown")
 
 
 
@@ -180,7 +228,7 @@ def inline_caps(bot, update):
         return
     results = list()
     print("did it pass")
-    results.append(InlineQueryResultArticle(id = query.upper(),title = 'Caps', thumb_url= btc,
+    results.append(InlineQueryResultArticle(id = query.upper(),title = 'Cap', thumb_url= btc,
                                             input_message_content = InputTextMessageContent(query.upper())))
 
     results.append(InlineQueryResultArticle(id= "Bitcoin" , title='Price :$14,5467', url="https://coinmarketcap.com/currencies/bitcoin/", hide_url=True,
@@ -310,6 +358,7 @@ def bot_main(bot_token=""):
     dp.add_handler(CommandHandler("subscribe", subscribe))
     dp.add_handler(CommandHandler("unsubscribe", unsubscribe))
     dp.add_handler(CommandHandler("priceBTC", priceBTC))
+    dp.add_handler(CommandHandler("price", price))
    # dp.add_handler(CommandHandler("hustlers", hustlers))
     dp.add_handler(CallbackQueryHandler(button))
 
