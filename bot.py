@@ -10,6 +10,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 import datetime
 import requests
+from coinmarketcap import Market
 from bs4 import BeautifulSoup
 from bittrex.bittrex import Bittrex, API_V2_0
 import time
@@ -74,9 +75,18 @@ def ETH(bot, update):
         common.saveSubscribers(common.subscribers)
 
 
-#lets try to automate the price function
+# lets try to automate the price function
 def price(bot, update):
 
+
+    ticker_list = {"BTC": ["bitcoin", "357312062"], "ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple",
+                  "ETC": "ethereum classic", "WTC": " walton", "ICX": "icon", "CTR": "centra", "MOD": "modum",
+                   "SNT": "status", "BCH": "bitcoin cash", "ADA": "cardano", "XEM": "nem", "XLM":"stellar",
+                   "IOTA": "miota", "DASH": "dash", "NEO":"neo", "XMR":"monero", "QTUM": "qtum", "BTG": "bitcoin gold",
+                   "LSK" : "lisk" , "XRB": "raiblocks", "XVG": "verge" , "SC": "siacoin", "BCN":"bytecoin", "BCC" : "bitconnect",
+                   "ZEC": "zcash", "STRAT": "stratis"
+
+                  }
     # get the users text and format it for the Bittrex API
     price_coin_ticker = update.message.text
     coin_ticker = price_coin_ticker[7:]
@@ -85,6 +95,10 @@ def price(bot, update):
     #update.message.reply_text(coin_ticker)
     #update.message.reply_text(ticker_pair)
 
+
+# CMC api initialization
+    coinmarketcap = Market()
+
 # set up Bittrex API
     my_bittrex = Bittrex(None, None)  # or defaulting to v1.1 as Bittrex(None, None)
 
@@ -92,14 +106,33 @@ def price(bot, update):
     BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC") # Access BTC Market info
     btc_price = BTC_summary["result"][0]["Last"]
 
+    #print("before cmc")
+    #cmc_summary = coinmarketcap.ticker(coin_ticker)
+    #print(cmc_summary)
+    #print("passed intiliazation")
+
+
 # getting Market info from Bittrex API
     summary = my_bittrex.get_marketsummary(market=ticker_pair)
     print(summary)
     if summary['success'] != True :
-        update.message.reply_text("Sorry! Coin is not supported by the Hustler Team")
+        coin_ticker2 = ticker_list[coin_ticker]
+        print("here cmc")
+        cmc_summary = coinmarketcap.ticker(coin_ticker2)
+        print("passed intiliazation")
+        print(cmc_summary)
+        bit_price = cmc_summary[0]['price_usd']
+        vol_RO = cmc_summary[0]['24h_volume_usd']
+        #vol_RO = "%.2f" % vol
+        change_RO = cmc_summary[0]['percent_change_24h']
+        price_RO = cmc_summary[0]['price_usd']
+        print("CMC price")
+        print(btc_price, bit_price, price_RO )
+        # update.message.reply_text("Sorry! Coin is not supported by the Hustler Team")
+
     else:
         bit_price = summary["result"][0]["Last"] # price in BTC
-        vol = summary["result"][0]["Volume"] # Volume in BTC
+        vol = (summary["result"][0]["Volume"]) * btc_price # Volume in BTC
         prevDay = summary["result"][0]["PrevDay"]
         change = ((bit_price - prevDay) /prevDay) * 100
         change_RO = "%.2f" % change
@@ -110,13 +143,13 @@ def price(bot, update):
 
     # Send info to the bot/user | using Reply or send
     # Reply
-    update.message.reply_text("💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_*{vol}* \n "
+    update.message.reply_text("💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_$*{vol}* \n "
                               "_24hr📈:_ *{change}%*  \n [{coin} on Bittrex](Bittrex_price_ETH) ".format(
         coin=coin_ticker,
         price=price_RO, vol=vol_RO, change=change_RO), parse_mode="Markdown")
 
     # Send
-    bot.sendMessage(update.message.chat_id, "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_*{vol}* \n "
+    bot.sendMessage(update.message.chat_id, "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_$*{vol}* \n "
                                             "_24hr📈:_ *{change}%*  \n [{coin} on Bittrex](Bittrex_price_ETH) ".format(
        coin=coin_ticker,
        price=price_RO, vol=vol_RO, change=change_RO), parse_mode="Markdown")
