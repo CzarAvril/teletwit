@@ -255,24 +255,61 @@ def coinlist(bot, update,):
 
 
 def inline_caps(bot, update):
+# lets feed the inline bot the CMC Api data so user can quickly search for price and change without sending a message
+# in the group, we are going to use the same variables from the /price function, later we will refactor and add a class
+# lets just make it work first
+
+# Dict to cross reference users input and ge the correct coin name or ticker signal
+
+    ticker_list = {"BTC": "bitcoin", "ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple",
+                  "ETC": "ethereum classic", "WTC": " walton", "ICX": "icon", "CTR": "centra", "MOD": "modum",
+                   "SNT": "status", "BCH": "bitcoin cash", "ADA": "cardano", "XEM": "nem", "XLM":"stellar",
+                   "IOTA": "miota", "DASH": "dash", "NEO":"neo", "XMR":"monero", "QTUM": "qtum", "BTG": "bitcoin gold",
+                   "LSK" : "lisk" , "XRB": "raiblocks", "XVG": "verge" , "SC": "siacoin", "BCN":"bytecoin", "BCC" : "bitconnect",
+                   "ZEC": "zcash", "STRAT": "stratis"
+
+                  }
+
+
+    ticker_list2 = {"BTC": "bitcoin", "ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple","WTC": "walton",
+                    "ICX": "icon", "CTR": "centra", "MOD": "modum", "SNT": "status","BCH": "bitcoin-cash",
+                    "ADA": "cardano"
+              }
+
+    # CMC api initialization
+    coinmarketcap = Market()
+    #cmc_summary = coinmarketcap.ticker(limit=5)
+    #print(cmc_summary)
+
+    #cmc_summary = coinmarketcap.ticker("bitcoin")
+   # bit_price = cmc_summary[0]['price_usd']
+    #vol_RO = cmc_summary[0]['24h_volume_usd']
+    #vol_RO = "%.2f" % vol
+    #change_RO = cmc_summary[0]['percent_change_24h']
+    #price_RO = cmc_summary[0]['price_usd']
+
+
     query = update.inline_query.query
     btc = "https://www.google.com/search?q=btc+logo&hl=en&site=imghp&tbm=isch&source=lnt&tbs=isz:m&sa=X&ved=0ahUKEwj92M7h76zYAhUHzIMKHdRPAgsQpwUIIA&biw=1259&bih=676&dpr=1#imgrc=Jef9qHkdlhE2QM:"
     if not query:
         return
     results = list()
     print("did it pass")
-    results.append(InlineQueryResultArticle(id = query.upper(),title = 'Cap', thumb_url= btc,
-                                            input_message_content = InputTextMessageContent(query.upper())))
+    for coin_key in ticker_list2:
+        cmc_summary = coinmarketcap.ticker(ticker_list2[coin_key])
+        url = "https://coinmarketcap.com/currencies/"
+        coin_url = url+ticker_list2[coin_key]+"/"
+        change_RO = cmc_summary[0]['percent_change_24h']
+        price_RO = cmc_summary[0]['price_usd']
+        vol_RO = cmc_summary[0]['24h_volume_usd']
+        icon_url = "https://files.coinmarketcap.com/static/img/coins/32x32/"
+        thumb = icon_url+ticker_list2[coin_key]+".png"
+        title_price = ticker_list2[coin_key].title()+": $"+price_RO+"💵"
+        desc_coin = "24hr📈:"+change_RO +"\n 24hr Vol:"+vol_RO
+        results.append(InlineQueryResultArticle(id=coin_key, title=title_price, url=coin_url, hide_url=True,
+                                     input_message_content=InputTextMessageContent(" you are now following:"),
+                                     description=desc_coin, thumb_url=thumb))
 
-    results.append(InlineQueryResultArticle(id= "Bitcoin" , title='Price :$14,5467', url="https://coinmarketcap.com/currencies/bitcoin/", hide_url=True,
-                                            input_message_content=InputTextMessageContent( " you are now following:"),
-                                             thumb_url="https://faucethub.io/assets/img/coins/BTC.png", description= "24hr Change: 24.45 %" ))
-
-    results.append(InlineQueryResultArticle(id="Ethereum", title='Price :$740.47',
-                                            url="https://coinmarketcap.com/currencies/ethereum/", hide_url=True,
-                                            input_message_content=InputTextMessageContent(" you are now following:"),
-                                            thumb_url="https://eth-price.com/images/coins/ethereum.png",
-                                            description="24hr Change: 15.45 %"))
     print("are we here")
 
     bot.answer_inline_query(update.inline_query.id, results)
