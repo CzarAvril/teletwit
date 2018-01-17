@@ -12,6 +12,8 @@ import datetime
 import requests
 from coinmarketcap import Market
 from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
 from bittrex.bittrex import Bittrex, API_V2_0
 import time
 
@@ -278,7 +280,61 @@ def inline_caps(bot, update):
 
     # CMC api initialization
     coinmarketcap = Market()
-    #cmc_summary = coinmarketcap.ticker(limit=5)
+
+# ********* Using Pandas to easily manipulate the data
+
+    # Create market summary object with a limit of 100 / or not
+    market_summary = coinmarketcap.ticker(limit=100)
+    cmc_df = pd.DataFrame(market_summary)
+
+    # now we pull the relevant columns from the dataset , PS i Jupyter Notebook to help visualize this
+    slim_cmc_df = cmc_df[["percent_change_24h","id","24h_volume_usd", "price_usd", "price_btc", "symbol"]].sort_values(
+         "percent_change_24h", ascending=False)
+
+
+    # now that we have a new dataframe from our original with the data we need, we are now going to add a new index
+    slim_cmc_df = slim_cmc_df.head(n=10)
+    trending = ["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"]
+    slim_cmc_df.index=trending
+    #slim_cmc_df
+
+    # now we iterate through the dataframe
+
+    query = update.inline_query.query
+    if not query:
+        return
+    elif query == "trend":
+        results = list()
+        print("did it pass")
+        for index, row in slim_cmc_df.iterrows():
+            coin_key = row['id']
+            symbol = row['symbol']
+            change_RO = row['percent_change_24h']
+            price_RO = row['price_usd']
+            vol_RO = row['24h_volume_usd']
+            url = "https://coinmarketcap.com/currencies/"
+            coin_url = url + coin_key + "/"
+            icon_url = "https://files.coinmarketcap.com/static/img/coins/32x32/"
+            thumb = icon_url + coin_key + ".png"
+            title_price = coin_key.title() + "/" + symbol + ": $" + price_RO + "💵"
+            desc_coin = "24hr📈:" + change_RO + "%" + "\n 24hr Vol:" + "$" + vol_RO
+            results.append(InlineQueryResultArticle(id=coin_key, title=title_price, url=coin_url, hide_url=True,
+                                                    description=desc_coin, thumb_url=thumb))
+    else: return
+
+
+
+# ********** Add search feature for CoinMArket cap based on users input query
+# save code at the bottom for that implementation
+
+
+
+# pulling data and adding it to DF for easy manipulation
+
+   # market_summary = coinmarketcap.ticker()
+   # cmc_df =pd.DataFrame(market_summary)
+
+
     #print(cmc_summary)
 
     #cmc_summary = coinmarketcap.ticker("bitcoin")
@@ -289,32 +345,33 @@ def inline_caps(bot, update):
     #price_RO = cmc_summary[0]['price_usd']
 
 
-    query = update.inline_query.query
-    btc = "https://www.google.com/search?q=btc+logo&hl=en&site=imghp&tbm=isch&source=lnt&tbs=isz:m&sa=X&ved=0ahUKEwj92M7h76zYAhUHzIMKHdRPAgsQpwUIIA&biw=1259&bih=676&dpr=1#imgrc=Jef9qHkdlhE2QM:"
-    if not query:
-        return
-    results = list()
-    print("did it pass")
-    for coin_key in ticker_list2:
-        cmc_summary = coinmarketcap.ticker(ticker_list2[coin_key])
-        url = "https://coinmarketcap.com/currencies/"
-        coin_url = url+ticker_list2[coin_key]+"/"
-        change_RO = cmc_summary[0]['percent_change_24h']
-        price_RO = cmc_summary[0]['price_usd']
-        vol_RO = cmc_summary[0]['24h_volume_usd']
-        icon_url = "https://files.coinmarketcap.com/static/img/coins/32x32/"
-        thumb = icon_url+ticker_list2[coin_key]+".png"
-        title_price = ticker_list2[coin_key].title()+": $"+price_RO+"💵"
-        desc_coin = "24hr📈:"+change_RO +"\n 24hr Vol:"+vol_RO
-        results.append(InlineQueryResultArticle(id=coin_key, title=title_price, url=coin_url, hide_url=True,
-                                     input_message_content=InputTextMessageContent(" you are now following:"),
-                                     description=desc_coin, thumb_url=thumb))
+    #query = update.inline_query.query
+    #btc = "https://www.google.com/search?q=btc+logo&hl=en&site=imghp&tbm=isch&source=lnt&tbs=isz:m&sa=X&ved=0ahUKEwj92M7h76zYAhUHzIMKHdRPAgsQpwUIIA&biw=1259&bih=676&dpr=1#imgrc=Jef9qHkdlhE2QM:"
+    #if not query:
+     #   return
+    #results = list()
+    #print("did it pass")
+    #for coin_key in ticker_list2:
+     #   cmc_summary = coinmarketcap.ticker(ticker_list2[coin_key])
+      #  url = "https://coinmarketcap.com/currencies/"
+       # coin_url = url+ticker_list2[coin_key]+"/"
+      #  change_RO = cmc_summary[0]['percent_change_24h']
+       # price_RO = cmc_summary[0]['price_usd']
+       # vol_RO = cmc_summary[0]['24h_volume_usd']
+        #icon_url = "https://files.coinmarketcap.com/static/img/coins/32x32/"
+        #thumb = icon_url+ticker_list2[coin_key]+".png"
+        #title_price = ticker_list2[coin_key].title()+": $"+price_RO+"💵"
+        #desc_coin = "24hr📈:"+change_RO +"\n 24hr Vol:"+vol_RO
+        #results.append(InlineQueryResultArticle(id=coin_key, title=title_price, url=coin_url, hide_url=True,
+          #                           input_message_content=InputTextMessageContent(" you are now following:"),
+           #                          description=desc_coin, thumb_url=thumb))
 
     print("are we here")
 
     bot.answer_inline_query(update.inline_query.id, results)
 
     print("passed")
+
 
 
 
