@@ -18,18 +18,13 @@ from bittrex.bittrex import Bittrex, API_V2_0
 import time
 
 
-
-# from telegram import Updater
-
-# command handlers
-# rough draft of coin list(buttons) that users will be able to choose from
-# updates*** create dynamic button creation or even better checklist
-
-
+# this was in the bot main towards the bottom of this page
+updater = Updater(token="474430462:AAEfUyEsazaBoGE30jcYBa03kPFnShrFQ68")
+jobber = updater.job_queue
 
 
 def subscribe(bot, update):
-
+    # pull basic user info
     usr_id = update.effective_user.id  # user id
     usr_fname = update.effective_user.first_name  # user first name
     usr_lname = update.effective_user.last_name   # user last name
@@ -49,62 +44,101 @@ def subscribe(bot, update):
         bot.sendMessage(update.message.chat_id, text='Already Subscribed!')
         bot.sendMessage(update.message.chat_id, text='If you would like to follow a new coin use the "/follow" command')
 
-
-# Coin Follow Functions ( **** Figure out how to automate )
-
-
-def BTC(bot, update):
-    coin_list2 = {"BTC": ["Bitcoin", "357312062"], "ETH": "Ethereum", "LTC": "Litecoin", "XRP": "Ripple",
-                  "ETC": "Ethereum Classic",
-                  "WTC": " Walton Chain", "ICX": "Icon", "CTR": "Centra", "MOD": "Modum", "SNT": "Status"
-                  }
-    usr_id = update.effective_user.id
-    if "BTC" not in common.subscribers[usr_id]['coins']:
-        print("tall trees")
-        common.subscribers[usr_id]['coins'].append(coin_list2["BTC"][1])
-        print("under the if statement1")
-        bot.sendMessage(update.message.chat_id, text='You are now following Bitcoin')
-        common.saveSubscribers(common.subscribers)
+    # Add follow specific coin funtions later??? refer to programming notes
+    # Coin Follow Functions ( **** Figure out how to automate )
 
 
-def ETH(bot, update):
-    usr_id = update.effective_user.id
-    if "ETH" not in common.subscribers[usr_id]['coins']:
-        print("tall trees")
-        common.subscribers[usr_id]['coins'].append("ETH")
-        print("under the if statement1")
-        bot.sendMessage(update.message.chat_id, text='You are now following Ethereum')
-        common.saveSubscribers(common.subscribers)
+def price_updater(bot,job):
+
+    ticker_list = {"ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple",
+                   "ETC": "ethereum-classic", "WTC": "walton", "ICX": "icon", "CTR": "centra", "MOD": "modum",
+                   "SNT": "status", "BCH": "bitcoin-cash", "ADA": "cardano", "XEM": "nem", "XLM": "stellar",
+                   "IOTA": "miota", "DASH": "dash", "NEO": "neo", "XMR": "monero", "QTUM": "qtum",
+                   "BTG": "bitcoin-gold",
+                   "LSK": "lisk", "XRB": "raiblocks", "XVG": "verge", "SC": "siacoin", "BCN": "bytecoin",
+                   "BCC": "bitconnect", "ZEC": "zcash", "STRAT": "stratis"
+                   }
+
+    # set up Bittrex API
+    my_bittrex = Bittrex(None, None)  # or defaulting to v1.1 as Bittrex(None, None)
+
+    # CMC api initialization
+    coinmarketcap = Market()
+
+    # Constants used to do Calculations
+    BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC")  # Access BTC Market info
+    btc_price = BTC_summary["result"][0]["Last"]
+
+    for ticker in ticker_list.keys():
+        ticker_pair = "BTC-" + ticker  # reformat for the Bittrex Api
+        summary = my_bittrex.get_marketsummary(market=ticker_pair)
+        if summary['success'] != True:
+            coin_ticker3 = ticker_list[ticker]
+            print("here cmc")
+            cmc_summary = coinmarketcap.ticker(coin_ticker3)
+            print("passed intiliazation")
+            print(cmc_summary)
+            bit_price = cmc_summary[0]['price_usd']
+            vol_RO = cmc_summary[0]['24h_volume_usd']
+            # vol_RO = "%.2f" % vol
+            change_RO = cmc_summary[0]['percent_change_24h']
+            price_RO = cmc_summary[0]['price_usd']
+            print("CMC price")
+            print(btc_price, bit_price, price_RO)
+        else:
+            coin_ticker3 = ticker_list[ticker]
+            bit_price = summary["result"][0]["Last"]  # price in BTC
+            vol = (summary["result"][0]["Volume"]) * btc_price  # Volume in BTC
+            prevDay = summary["result"][0]["PrevDay"]
+            change = ((bit_price - prevDay) / prevDay) * 100
+            change_RO = "%.2f" % change
+            price = bit_price * btc_price
+            price_RO = "%.2f" % price
+            vol_RO = "%.2f" % vol
+            print(btc_price, bit_price, price_RO, price, vol)
+
+
+
+        bot.send_message(chat_id='275079674', text = "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_$*{vol}* \n "
+                     "_24hr📈:_ *{change}%*  \n [{coin} on Bittrex](Bittrex_price_ETH) "
+                     .format( coin=coin_ticker3, price= price_RO, vol=vol_RO, change=change_RO), parse_mode="Markdown")
+
+
+jobber.run_repeating(price_updater, interval= 60, first= 0)
+
+
+
+
+
+
 
 
 # lets try to automate the price function
 def price(bot, update):
 
-
+    # this list is used to cross reference the "symbol" to the coins name,
+    # it should be replaced by a more efficicent way, maybe the CMC dataframe????
     ticker_list = {"BTC": ["bitcoin", "357312062"], "ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple",
-                  "ETC": "ethereum classic", "WTC": " walton", "ICX": "icon", "CTR": "centra", "MOD": "modum",
+                   "ETC": "ethereum classic", "WTC": " walton", "ICX": "icon", "CTR": "centra", "MOD": "modum",
                    "SNT": "status", "BCH": "bitcoin cash", "ADA": "cardano", "XEM": "nem", "XLM":"stellar",
                    "IOTA": "miota", "DASH": "dash", "NEO":"neo", "XMR":"monero", "QTUM": "qtum", "BTG": "bitcoin gold",
-                   "LSK" : "lisk" , "XRB": "raiblocks", "XVG": "verge" , "SC": "siacoin", "BCN":"bytecoin", "BCC" : "bitconnect",
-                   "ZEC": "zcash", "STRAT": "stratis"
+                   "LSK" : "lisk" , "XRB": "raiblocks", "XVG": "verge" , "SC": "siacoin", "BCN":"bytecoin",
+                   "BCC" : "bitconnect", "ZEC": "zcash", "STRAT": "stratis"
+                   }
 
-                  }
     # get the users text and format it for the Bittrex API
-    price_coin_ticker = update.message.text
-    coin_ticker = price_coin_ticker[7:]
-    ticker_pair = "BTC-"+coin_ticker
-    print(coin_ticker, ticker_pair)
-    #update.message.reply_text(coin_ticker)
-    #update.message.reply_text(ticker_pair)
+    price_coin_ticker = update.message.text  # what the user enters, with the /price
+    coin_ticker = price_coin_ticker[7:]      # we slice the coins ticker/symbol
+    ticker_pair = "BTC-"+coin_ticker         # reformat for the Bittrex Api
+    print("Fetching %s, for the coin %s " % (coin_ticker, ticker_pair))
 
-
-# CMC api initialization
-    coinmarketcap = Market()
-
-# set up Bittrex API
+    # set up Bittrex API
     my_bittrex = Bittrex(None, None)  # or defaulting to v1.1 as Bittrex(None, None)
 
-# Constants used to do Calculations
+    # CMC api initialization
+    coinmarketcap = Market()
+
+    # Constants used to do Calculations
     BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC") # Access BTC Market info
     btc_price = BTC_summary["result"][0]["Last"]
 
@@ -303,24 +337,24 @@ def inline_caps(bot, update):
     query = update.inline_query.query
     if not query:
         return
-    elif query == "trend":
-        results = list()
-        print("did it pass")
-        for index, row in slim_cmc_df.iterrows():
-            coin_key = row['id']
-            symbol = row['symbol']
-            change_RO = row['percent_change_24h']
-            price_RO = row['price_usd']
-            vol_RO = row['24h_volume_usd']
-            url = "https://coinmarketcap.com/currencies/"
-            coin_url = url + coin_key + "/"
-            icon_url = "https://files.coinmarketcap.com/static/img/coins/32x32/"
-            thumb = icon_url + coin_key + ".png"
-            title_price = coin_key.title() + "/" + symbol + ": $" + price_RO + "💵"
-            desc_coin = "24hr📈:" + change_RO + "%" + "\n 24hr Vol:" + "$" + vol_RO
-            results.append(InlineQueryResultArticle(id=coin_key, title=title_price, url=coin_url, hide_url=True,
-                                                    description=desc_coin, thumb_url=thumb))
-    else: return
+    results = list()
+    print("did it pass")
+    for index, row in slim_cmc_df.iterrows():
+        coin_key = row['id']
+        symbol = row['symbol']
+        change_RO = row['percent_change_24h']
+        price_RO = row['price_usd']
+        vol_RO = row['24h_volume_usd']
+        url = "https://coinmarketcap.com/currencies/"
+        coin_url = url + coin_key + "/"
+        icon_url = "https://files.coinmarketcap.com/static/img/coins/32x32/"
+        thumb = icon_url + coin_key + ".png"
+        title_price = coin_key.title() + "/" + symbol + ": $" + price_RO + "💵"
+        desc_coin = "24hr📈:" + change_RO + "%" + "\n 24hr Vol:" + "$" + vol_RO
+        results.append(InlineQueryResultArticle(id=coin_key, title=title_price, url=coin_url, hide_url=True,
+                                                    description=desc_coin, thumb_url=thumb,
+                                                input_message_content=InputTextMessageContent(" you are now following:")))
+
 
 
 
@@ -469,8 +503,10 @@ def button(bot, update):
 
 def bot_main(bot_token=""):
     # Create the EventHandler and pass it your bot's token.
-   # updater = Updater(token=bot_token)
-    updater = Updater(token="474430462:AAEfUyEsazaBoGE30jcYBa03kPFnShrFQ68")
+    # updater = Updater(token=bot_token)
+    # instantiate the job queue "jobber"
+    #updater = Updater(token="474430462:AAEfUyEsazaBoGE30jcYBa03kPFnShrFQ68")
+    #jobber = updater.job_queue
 
 
     common.bot = updater.bot
@@ -478,6 +514,7 @@ def bot_main(bot_token=""):
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
+    price_handler = CommandHandler(" price updater", price_updater )
     inline_caps_handler = InlineQueryHandler(inline_caps)
     dp.add_handler(inline_caps_handler)
     dp.add_handler(CommandHandler('coinlist', coinlist))
@@ -490,8 +527,8 @@ def bot_main(bot_token=""):
     dp.add_handler(CallbackQueryHandler(button))
 
     # Coin Follow Functions ( NEEEEDs To Be automated)
-    dp.add_handler(CommandHandler('BTC', BTC))
-    dp.add_handler(CommandHandler('ETH', ETH))
+    #dp.add_handler(CommandHandler('BTC', BTC))
+    #dp.add_handler(CommandHandler('ETH', ETH))
 
 
     # Start the Bot
