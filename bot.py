@@ -50,13 +50,8 @@ def subscribe(bot, update):
 
 def price_updater(bot,job):
 
-    ticker_list = {"ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple",
-                   "ETC": "ethereum-classic", "WTC": "walton", "ICX": "icon", "CTR": "centra", "MOD": "modum",
-                   "SNT": "status", "BCH": "bitcoin-cash", "ADA": "cardano", "XEM": "nem", "XLM": "stellar",
-                   "IOTA": "miota", "DASH": "dash", "NEO": "neo", "XMR": "monero", "QTUM": "qtum",
-                   "BTG": "bitcoin-gold",
-                   "LSK": "lisk", "XRB": "raiblocks", "XVG": "verge", "SC": "siacoin", "BCN": "bytecoin",
-                   "BCC": "bitconnect", "ZEC": "zcash", "STRAT": "stratis"
+    ticker_list = {"ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple"
+                   #, "ETC": "ethereum-classic", "WTC": "walton", "ICX": "icon", "CTR": "centra", "MOD": "modum"
                    }
 
     # set up Bittrex API
@@ -69,11 +64,13 @@ def price_updater(bot,job):
     BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC")  # Access BTC Market info
     btc_price = BTC_summary["result"][0]["Last"]
 
+   # price_list = {}
     for ticker in ticker_list.keys():
         ticker_pair = "BTC-" + ticker  # reformat for the Bittrex Api
         summary = my_bittrex.get_marketsummary(market=ticker_pair)
         if summary['success'] != True:
             coin_ticker3 = ticker_list[ticker]
+            coin_display = coin_ticker3 + "/" + ticker
             print("here cmc")
             cmc_summary = coinmarketcap.ticker(coin_ticker3)
             print("passed intiliazation")
@@ -95,13 +92,18 @@ def price_updater(bot,job):
             price = bit_price * btc_price
             price_RO = "%.2f" % price
             vol_RO = "%.2f" % vol
+            coin_display = "💰"+coin_ticker3+"/"+ticker + "\n"
             print(btc_price, bit_price, price_RO, price, vol)
 
+        price_list = "💵*{coin}*💵\n _price💰:_ *${price}*\n _Vol:_$*{vol}*\n _24hr📈:_ *{change}%* \n [{coin} on Bittrex](Bittrex_price_ETH)\n\n".format(coin=coin_display,
+                                                                                                      price= price_RO, vol=vol_RO, change=change_RO)
+        #price_list[coin_ticker3] = "💰"+ticker+"\n"
+        #price_list.append(price_show)
+       # price_list.append( "💵*{coin}*💵\n _price💰:_ *${price}*\n _Vol:_$*{vol}*\n "
+        #                   "_24hr📈:_ *{change}%* \n [{coin} on Bittrex](Bittrex_price_ETH)\n\n"
+         #            .format( coin=coin_display, price= price_RO, vol=vol_RO, change=change_RO))
 
-
-        bot.send_message(chat_id='275079674', text = "💵*{coin}*💵 \n _price💰:_ *${price}* \n _Vol:_$*{vol}* \n "
-                     "_24hr📈:_ *{change}%*  \n [{coin} on Bittrex](Bittrex_price_ETH) "
-                     .format( coin=coin_ticker3, price= price_RO, vol=vol_RO, change=change_RO), parse_mode="Markdown")
+    bot.send_message(chat_id='275079674', text= price_list, parse_mode="Markdown")
 
 
 jobber.run_repeating(price_updater, interval= 60, first= 0)
