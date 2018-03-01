@@ -48,7 +48,11 @@ def subscribe(bot, update):
     # Coin Follow Functions ( **** Figure out how to automate )
 
 
-def price_updater(bot,job):
+def price_updater(bot, job):
+
+    # use endpoint to extract the json object then put into Pandas Dataframe for further processing
+    r = requests.get("https://bittrex.com/api/v1.1/public/getmarketsummaries")
+    bittrex_data = r.json()
 
     ticker_list = {"ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple"
                    #, "ETC": "ethereum-classic", "WTC": "walton", "ICX": "icon", "CTR": "centra", "MOD": "modum"
@@ -66,52 +70,99 @@ def price_updater(bot,job):
 
    # price_list = {}
     for ticker in ticker_list.keys():
-        ticker_pair = "BTC-" + ticker  # reformat for the Bittrex Api
-        summary = my_bittrex.get_marketsummary(market=ticker_pair)
-        if summary['success'] != True:
-            coin_ticker3 = ticker_list[ticker]
-            coin_display = coin_ticker3 + "/" + ticker
-            print("here cmc")
-            cmc_summary = coinmarketcap.ticker(coin_ticker3)
-            print("passed intiliazation")
-            print(cmc_summary)
-            bit_price = cmc_summary[0]['price_usd']
-            vol_RO = cmc_summary[0]['24h_volume_usd']
-            # vol_RO = "%.2f" % vol
-            change_RO = cmc_summary[0]['percent_change_24h']
-            price_RO = cmc_summary[0]['price_usd']
-            print("CMC price")
-            print(btc_price, bit_price, price_RO)
-        else:
-            coin_ticker3 = ticker_list[ticker]
-            bit_price = summary["result"][0]["Last"]  # price in BTC
-            vol = (summary["result"][0]["Volume"]) * btc_price  # Volume in BTC
-            prevDay = summary["result"][0]["PrevDay"]
-            change = ((bit_price - prevDay) / prevDay) * 100
-            change_RO = "%.2f" % change
-            price = bit_price * btc_price
-            price_RO = "%.2f" % price
-            vol_RO = "%.2f" % vol
-            coin_display = "💰"+coin_ticker3+"/"+ticker + "\n"
-            print(btc_price, bit_price, price_RO, price, vol)
+        if bittrex_price_checker(ticker_list,ticker,bittrex_data) != "NP":
+            price_list2 = bittrex_price_checker(ticker_list,ticker,bittrex_data)
 
-        price_list = "💵*{coin}*💵\n _price💰:_ *${price}*\n _Vol:_$*{vol}*\n _24hr📈:_ *{change}%* \n [{coin} on Bittrex](Bittrex_price_ETH)\n\n".format(coin=coin_display,
-                                                                                                      price= price_RO, vol=vol_RO, change=change_RO)
+       # ticker_pair = "BTC-" + ticker  # reformat for the Bittrex Api
+      #  summary = my_bittrex.get_marketsummary(market=ticker_pair)
+
+       # if summary['success'] != True:
+        #    coin_ticker3 = ticker_list[ticker]
+         #   coin_display = coin_ticker3 + "/" + ticker
+          #  print("here cmc")
+           # cmc_summary = coinmarketcap.ticker(coin_ticker3)
+            #print("passed intiliazation")
+            #print(cmc_summary)
+            #bit_price = cmc_summary[0]['price_usd']
+            #vol_RO = cmc_summary[0]['24h_volume_usd']
+            ## vol_RO = "%.2f" % vol
+            #change_RO = cmc_summary[0]['percent_change_24h']
+            #price_RO = cmc_summary[0]['price_usd']
+            #print("CMC price")
+            #print(btc_price, bit_price, price_RO)
+        #else:
+         #   coin_ticker3 = ticker_list[ticker]
+          #  bit_price = summary["result"][0]["Last"]  # price in BTC
+           # vol = (summary["result"][0]["Volume"]) * btc_price  # Volume in BTC
+            #prevDay = summary["result"][0]["PrevDay"]
+            #change = ((bit_price - prevDay) / prevDay) * 100
+            #change_RO = "%.2f" % change
+            #price = bit_price * btc_price
+            #price_RO = "%.2f" % price
+            #vol_RO = "%.2f" % vol
+            #coin_display = "💰"+coin_ticker3+"/"+ticker + "\n"
+            #print(btc_price, bit_price, price_RO, price, vol)
+
+        #price_list = "💵*{coin}*💵\n _price💰:_ *${price}*\n _Vol:_$*{vol}*\n _24hr📈:_ *{change}%* \n [{coin} on Bittrex](Bittrex_price_ETH)\n\n".format(coin=coin_display,
+#                                                                                                      price= price_RO, vol=vol_RO, change=change_RO)
         #price_list[coin_ticker3] = "💰"+ticker+"\n"
         #price_list.append(price_show)
        # price_list.append( "💵*{coin}*💵\n _price💰:_ *${price}*\n _Vol:_$*{vol}*\n "
         #                   "_24hr📈:_ *{change}%* \n [{coin} on Bittrex](Bittrex_price_ETH)\n\n"
          #            .format( coin=coin_display, price= price_RO, vol=vol_RO, change=change_RO))
 
-    bot.send_message(chat_id='275079674', text= price_list, parse_mode="Markdown")
+            bot.send_message(chat_id='275079674', text= price_list2, parse_mode="Markdown")
 
 
-jobber.run_repeating(price_updater, interval= 60, first= 0)
-
-
+jobber.run_repeating(price_updater, interval= 300, first= 0)
 
 
 
+def bittrex_price_checker(ticker_list, ticker, bittrex_data):
+
+    # add Bittrex data to a Dataframe
+    bittrex_df = pd.DataFrame(bittrex_data['result'])
+
+    # refine data for relevant columns and btc price
+    slim_bittrex_df = bittrex_df[["MarketName", "Last",'Volume','PrevDay']]
+    slim_bit_df = slim_bittrex_df.set_index('MarketName', drop=False)
+    btc_price = slim_bit_df['Last']['USDT-BTC']
+
+    # rudimentary way for gathering info, should make a column for each "change" and do computation in there
+    ticker_pair = "BTC-" + ticker  # reformat for the Bittrex Api
+    if ticker_pair not in set(slim_bit_df.MarketName):
+        return "NP"
+    coin_name = ticker_list[ticker]
+    last = slim_bit_df['Last'][ticker_pair]
+    volume = slim_bit_df['Volume'][ticker_pair]
+    prevday = slim_bit_df['PrevDay'][ticker_pair]
+    price_usd = last * btc_price
+    price_RO = "%.2f" % price_usd
+    vol = volume * btc_price
+    vol_RO = "%.2f" % vol
+    change = ((last - prevday) / prevday) * 100
+    change_RO = "%.2f" % change
+    coin_display_format = coin_name+"/"+ticker + "\n"
+
+    # check for 24hr pump and change emoji
+    chart_icon = pump_24hr(change)
+
+    price_list = "💵*{coin}*\n _price💰:_ *${price}*\n _Vol:_💲*{vol}*\n _24hr{chart}:_ *{change}%* " \
+                 "\n [{coin_name} on Bittrex](Bittrex_price_ETH)\n\n".format(coin=coin_display_format, price=price_RO,
+                                                                             vol=vol_RO, change=change_RO,
+                                                                             chart=chart_icon, coin_name=coin_name)
+    return price_list
+
+
+def pump_24hr(change):
+    icon = "📈"
+    if change < 0:
+        icon = "📉"
+    elif change >= 40:
+        icon = "🤑"
+    else:
+        icon = "📈"
+    return icon
 
 
 
