@@ -22,6 +22,8 @@ def main():
     twitter_consumer_secret = ""
     twitter_access_token = ""
     twitter_access_secret = ""
+    binance_api_key = ""
+    binance_api_secret = ""
 
     # READ API TOKENS FROM FILE
     with open('tokens.json') as token_file:
@@ -31,6 +33,8 @@ def main():
         twitter_consumer_secret = token_data['consumer_secret']
         twitter_access_token = token_data['access_token']
         twitter_access_secret = token_data['access_token_secret']
+        binance_api_key = token_data['binance_api_key']
+        binance_api_secret = token_data['binance_api_secret']
 
     follow_list = []
     with open('follow_list.json') as follow_list_file:
