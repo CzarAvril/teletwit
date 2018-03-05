@@ -9,12 +9,15 @@ import tweepy
 # import twitter_telegram_bot2.stream as stream
 from teletwit_bot import common, bot
 from teletwit_bot.stream import TweetsStreamListener
+#from binance.client import Client
+
 
 
 def main():
     print("Booting")
 
     common.init()
+
 
 
     telegram_bot_token = ""
@@ -24,6 +27,7 @@ def main():
     twitter_access_secret = ""
     binance_api_key = ""
     binance_api_secret = ""
+
 
     # READ API TOKENS FROM FILE
     with open('tokens.json') as token_file:
@@ -42,6 +46,7 @@ def main():
         follow_list = follow_data['follow_list']
 
     # AUTH
+
     auth = tweepy.OAuthHandler(twitter_consumer_key, twitter_consumer_secret)
     auth.set_access_token(twitter_access_token, twitter_access_secret)
 
@@ -65,6 +70,8 @@ def main():
         print("Disconnected from stream")
     # sys.exit(0)
 
+    #global Client1
+    #Client1 = Client(binance_api_key, binance_api_secret)
 
 if __name__ == "__main__":
     main()

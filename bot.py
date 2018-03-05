@@ -1,4 +1,6 @@
-import teletwit_bot.main as main
+
+
+
 import teletwit_bot.common as common
 from telegram.ext import Updater
 import telegram
@@ -18,9 +20,14 @@ import numpy as np
 from bittrex.bittrex import Bittrex, API_V2_0
 import time
 from binance.client import Client
+#from main import Client_bin
 
 # ******** dont forget to add keys!!!! ***************
-#Client = Client(main.binance_api_key, main.binance_api_secret)
+
+
+# ******refrencing from the main.py file is prooving to be a headache, need to keep these hidden
+
+#Client1 = Client(binance_api_key, binance_api_secret)
 
 
 
@@ -28,21 +35,9 @@ from binance.client import Client
 binance_market_summary = Client.get_ticker()
 #binance_data = pd.DataFrame(binance_market_summary)
 
-
-
-
-
-
-
-
-
-
 # this was in the bot main towards the bottom of this page
 updater = Updater(token="474430462:AAEfUyEsazaBoGE30jcYBa03kPFnShrFQ68")
 jobber = updater.job_queue
-
-
-
 
 
 def subscribe(bot, update):
@@ -71,6 +66,7 @@ def subscribe(bot, update):
 
 
 def price_updater(bot, job):
+
     # use endpoint to extract the json object then put into Pandas Dataframe for further processing
     r = requests.get("https://bittrex.com/api/v1.1/public/getmarketsummaries")
     bittrex_data = r.json()
@@ -82,19 +78,15 @@ def price_updater(bot, job):
     # add cmc to a dataframe
     cmc_df = pd.DataFrame(market_summary)
 
+    # List of coins that are updated by the price updater function
+    # should give users ability to choose the coins they want to follow,by using a function?? maybe or maybe voting
+    # in the group
+
     ticker_list = {"ETH": "ethereum", "LTC": "litecoin", "XRP": "ripple", "CTR": "centra", "MOD": "modum",
-                   "WTC": "walton", "ETC": "ethereum-classic"
+                   "WTC": "walton", "ETC": "ethereum-classic", "FUN": "FunFair", "MKR":"Maker"
                    }
 
-    # set up Bittrex API
-    # my_bittrex = Bittrex(None, None)  # or defaulting to v1.1 as Bittrex(None, None)
-
-    # Constants used to do Calculations
-    # BTC_summary = my_bittrex.get_marketsummary(market="USDT-BTC")  # Access BTC Market info
-    # btc_price = BTC_summary["result"][0]["Last"]
-
-    # price_list = {}
-    price_list2 = ""
+    price_list2 = []
     for ticker in ticker_list.keys():
         if binance_price_checker(ticker_list, ticker,binance_market_summary) != "NP":
             price_list2 = binance_price_checker(ticker_list,ticker,binance_market_summary)
@@ -103,11 +95,15 @@ def price_updater(bot, job):
         elif cmc_price_checker(ticker_list, ticker, cmc_df) != "NP":
             price_list2 = cmc_price_checker(ticker_list, ticker, cmc_df)
 
+
         bot.send_message(chat_id='275079674', text=price_list2, parse_mode="Markdown")
 
 
-jobber.run_repeating(price_updater, interval=300, first=0)
+jobber.run_repeating(price_updater, interval=3000, first=0)
 
+
+# need to update this design, too many calls to the API using the entire json file
+# need to select which coins need to be followed then filter through and gather data on those coins
 
 def bittrex_price_checker(ticker_list, ticker, bittrex_data):
     # add Bittrex data to a Dataframe
@@ -163,7 +159,7 @@ def cmc_price_checker(ticker_list, ticker, cmc_df):
     # check for 24hr pump and change emoji
     chart_icon = pump_24hr(change)
 
-    price_list = "💵*{coin}*\n _price💰:_ *${price}*\n _Vol:_💲*{vol}*\n _24hr{chart}:_ *{change}%* " \
+    price_list = "💵*{coin}* _price💰:_ *${price}*\n _Vol:_💲*{vol}*\n _24hr{chart}:_ *{change}%* " \
                  "\n [{coin_name} on CoinMarketCap](Bittrex_price_ETH)\n\n".format(coin=coin_display_format,
                                                                                    price=price_RO, vol=vol_RO,
                                                                                    change=change_RO, chart=chart_icon,
